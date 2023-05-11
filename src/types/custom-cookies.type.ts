@@ -1,3 +1,3 @@
 export interface ICustomCookies {
-    session: string
+    refresh_token: string
 }
