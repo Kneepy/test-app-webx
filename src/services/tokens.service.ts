@@ -5,6 +5,7 @@ import { Tokens } from "./interfaces/tokens.interface"
 import { NOT_FOUND_SESSION } from "src/constants/errors"
 import { SessionModel } from "src/models/session.model"
 import { SessionOptions } from "./interfaces/session-options.interface"
+import { BaseException } from "src/exceptions/base.exception"
 
 class TokensService {
     async generateTokens(payload: AccessTokenPayload, fingerprint: string): Promise<Tokens> {
