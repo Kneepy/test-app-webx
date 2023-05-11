@@ -55,7 +55,7 @@ class TokensService {
 
         // соответсвенно если не нашли сессию то пользователь не авторизован
         if(!oldRefreshToken?.fingerprint) {
-            throw new Error(NOT_FOUND_SESSION)
+            throw BaseException.UnautorizedError(NOT_FOUND_SESSION)
         }
 
         return await this.generateTokens({ user_id: oldRefreshToken.user._id.toString() }, sessionOptions.fingerprint)
