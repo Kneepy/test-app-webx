@@ -1,4 +1,4 @@
-import { ICustomHeaders } from "src/types/custom-headers.type"
+import { ICustomHeaders } from "../../types/custom-headers.type"
 
 export interface AuthUserDTO {
     Body: {

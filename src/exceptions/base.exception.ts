@@ -1,4 +1,4 @@
-import { UNAUTORIZED } from "src/constants"
+import { UNAUTORIZED } from "../constants"
 
 export class BaseException extends Error {
     status: number

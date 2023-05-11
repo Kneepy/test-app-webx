@@ -1,11 +1,11 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import { SESSION_COOKIE_NAME, SESSION_COOKIE_OPTIONS, UNAUTORIZED } from "src/constants";
-import { AuthUserDTO } from "src/dtos/user-dtos/auth-user.dto";
-import { GetMeBySession } from "src/dtos/user-dtos/get-me-by-session.dto";
-import { BaseException } from "src/exceptions/base.exception";
-import { UserModel } from "src/models/user.model";
-import TokensService from "src/services/tokens.service";
-import UserService from "src/services/user.service";
+import { SESSION_COOKIE_NAME, SESSION_COOKIE_OPTIONS, UNAUTORIZED } from "../constants";
+import { AuthUserDTO } from "../dtos/user-dtos/auth-user.dto";
+import { GetMeBySession } from "../dtos/user-dtos/get-me-by-session.dto";
+import { BaseException } from "../exceptions/base.exception";
+import { UserModel } from "../models/user.model";
+import TokensService from "../services/tokens.service";
+import UserService from "../services/user.service";
 
 class UserController {
 
@@ -15,23 +15,18 @@ class UserController {
      * В случае если пользователь с такой почтой уже существует выдаёт ошибку
      */
     async registration({ body, headers }: FastifyRequest<AuthUserDTO>, reply: FastifyReply) {
-        try {
-            const { email, password } = body
-            const { fingerprint } = headers
+        const { email, password } = body
+        const { fingerprint } = headers
 
-            const user = await UserService.registration({ email, password })
-            const tokens = await TokensService.generateTokens({ user_id: user._id.toString() }, fingerprint)
+        const user = await UserService.registration({ email, password })
+        const tokens = await TokensService.generateTokens({ user_id: user._id.toString() }, fingerprint)
+        reply.headers({
+            authorization: tokens.accessToken
+        })
+        .setCookie(SESSION_COOKIE_NAME, tokens.refreshToken, SESSION_COOKIE_OPTIONS)
+        .status(201)
 
-            reply.headers({
-                authorization: tokens.accessToken
-            })
-            .setCookie(SESSION_COOKIE_NAME, tokens.refreshToken, SESSION_COOKIE_OPTIONS)
-            .status(201)
-
-            return tokens
-        } catch (e: Error | any) { 
-            reply.status(401).send(e)
-        }
+        return tokens
     }
     
     /**
@@ -53,8 +48,8 @@ class UserController {
             .status(201)
             
             return tokens
-        } catch (e) { 
-            reply.status(401).send(e)
+        } catch (e: any) { 
+            throw e
         }
     }
 
@@ -62,7 +57,7 @@ class UserController {
      * Проверяет токены авторизации на валидность и добавляет в запрос поле user_id содержащее id пользователя из токенов авторизации 
      * В случае невалидности токенов выбрасывает ошибку
      */
-    async auth({ headers, cookies, ...req }: FastifyRequest<GetMeBySession>, reply: FastifyReply, done: Function) {
+    async auth({ headers, cookies, ...req }: FastifyRequest<GetMeBySession>, reply: FastifyReply) {
         try {
             const { refresh_token } = cookies
             const { authorization, fingerprint } = headers
@@ -78,12 +73,12 @@ class UserController {
             .setCookie(SESSION_COOKIE_NAME, tokens.refreshToken, SESSION_COOKIE_OPTIONS)
 
             req.user_id = verifedTokens.user_id
-        } catch (e) {
-            done(e)
+        } catch (e: any) {
+            throw e
         }
     }
 
-    async getMe({ user_id }: FastifyRequest, reply: FastifyReply) {
+    async getMe({ user_id }: FastifyRequest) {
         return await UserModel.findById(user_id)
     }
 }

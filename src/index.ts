@@ -3,12 +3,13 @@ import mongoose from "mongoose";
 import FastifyCookie from "@fastify/cookie";
 import { userPrivateRoutes, userPublicRoutes } from "./routes";
 import UserContoller from "./controllers/user.contoller";
+import { BaseException } from "./exceptions/base.exception";
 
 const fastify = Fastify({
     logger: false
 })
 
-fastify.register(FastifyCookie)
+fastify.register(FastifyCookie, {parseOptions: {}, secret: "test"})
 
 /**
  * Маршруты общей области видимости
@@ -29,12 +30,20 @@ fastify.register((fastify: FastifyInstance, _, done: Function) => {
     done()
 })
 
+fastify.setErrorHandler((err, _, reply) => {
+    console.log(err)
+    if(err instanceof BaseException) {
+        return reply.status(err.status).send({ status: err.status, message: err.message, errors: err.errors ?? [] })
+    } 
+    return reply.status(500).send({ message: "Internal server error" })
+})
+
 fastify.listen({port: 3000}, async (err, address) => {
-    if(err) throw err
+    if(err) console.log(err)
 
     /**
      * MongoDB connection
-     */
+     */ 
     await mongoose.connect("mongodb://localhost:27017/test_app")
 
     console.log(`Server starting on: ${address}`)

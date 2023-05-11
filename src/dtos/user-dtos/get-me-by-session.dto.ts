@@ -1,4 +1,4 @@
-import { ICustomCookies } from "src/types/custom-cookies.types";
+import { ICustomCookies } from "src/types/custom-cookies.type";
 import { ICustomHeaders } from "src/types/custom-headers.type";
 
 export interface GetMeBySession {

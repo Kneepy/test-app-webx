@@ -1,24 +1,24 @@
 import * as jwt from "jsonwebtoken"
-import { JWT_ACCESS_EXPIRESIN, JWT_ACCESS_SECRET, SESSION_EXPIRESIN } from "src/constants/jwt"
+import { JWT_ACCESS_EXPIRESIN, JWT_ACCESS_SECRET, SESSION_EXPIRESIN } from "../constants/jwt"
 import { AccessTokenPayload } from "./interfaces/access-token-payload.interface"
 import { Tokens } from "./interfaces/tokens.interface"
-import { NOT_FOUND_SESSION } from "src/constants/errors"
-import { SessionModel } from "src/models/session.model"
+import { NOT_FOUND_SESSION } from "../constants/errors"
+import { SessionModel } from "../models/session.model"
 import { SessionOptions } from "./interfaces/session-options.interface"
-import { BaseException } from "src/exceptions/base.exception"
+import { BaseException } from "../exceptions/base.exception"
 
 class TokensService {
     async generateTokens(payload: AccessTokenPayload, fingerprint: string): Promise<Tokens> {
-        const accessToken = jwt.sign(payload, JWT_ACCESS_SECRET, {
-            expiresIn: JWT_ACCESS_EXPIRESIN
-        })    
-        const refreshToken = await SessionModel.create({user: payload.user_id, fingerprint, createdAt: Date.now()})
-
         /**
          * Если этот метод будет вызываться вне блока регистрации то могут быть пользователи с
          * одинаковыми fingerprint а у пользователя не может быть больше одной сессии с одним fingrerprint
          */
         await SessionModel.deleteOne({ user: payload.user_id, fingerprint })
+
+        const accessToken = jwt.sign(payload, JWT_ACCESS_SECRET, {
+            expiresIn: JWT_ACCESS_EXPIRESIN
+        })    
+        const refreshToken = await SessionModel.create({user: payload.user_id, fingerprint, createdAt: Date.now()})
 
         return {
             accessToken,
@@ -29,7 +29,7 @@ class TokensService {
         const verifyAccessToken = jwt.verify(tokens.accessToken, JWT_ACCESS_SECRET) as AccessTokenPayload
         const session = await SessionModel.findOne({ _id: tokens.refreshToken })
 
-        if(verifyAccessToken.user_id && Number(session.createdAt) + SESSION_EXPIRESIN > Date.now() && session.user._id.toString() === verifyAccessToken.user_id) {
+        if(session && session.user && session.user._id.toString() === verifyAccessToken.user_id && Number(session.createdAt) + SESSION_EXPIRESIN > Date.now() && session.user._id.toString() === verifyAccessToken.user_id) {
             return {
                 user_id: verifyAccessToken.user_id,
             }
@@ -52,14 +52,14 @@ class TokensService {
         if(verifedTokens.user_id) return tokens
 
         const oldRefreshToken = await SessionModel.findOne({ _id: tokens.refreshToken, fingerprint: sessionOptions.fingerprint })
-        await SessionModel.deleteOne({ _id: oldRefreshToken._id })
-
+        //await SessionModel.deleteOne({ _id: oldRefreshToken?._id })
+        
         // соответсвенно если не нашли сессию то пользователь не авторизован
         if(!oldRefreshToken?.fingerprint) {
             throw BaseException.UnautorizedError(NOT_FOUND_SESSION)
         }
 
-        return await this.generateTokens({ user_id: oldRefreshToken.user._id.toString() }, sessionOptions.fingerprint)
+        return await this.generateTokens({ user_id: oldRefreshToken?.user._id.toString() }, sessionOptions.fingerprint)
     }
 }
 
