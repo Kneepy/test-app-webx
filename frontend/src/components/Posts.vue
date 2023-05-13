@@ -40,7 +40,7 @@ onMounted(async () => await getPosts(1))
                 <div class="title">{{ post.title }}</div>
                 <div class="media">{{ post.media }}</div>
             </div>
-            <button class="edit">Редактировать</button>
+            <button class="edit">Edit</button>
         </div>
         <div class="pagination">
             <button @click="() => nextPage(i)" v-for="i in 10">{{ i }}</button>
