@@ -6,7 +6,6 @@ import { BaseException } from "../exceptions/base.exception";
 import { UserModel } from "../models/user.model";
 import TokensService from "../services/tokens.service";
 import UserService from "../services/user.service";
-import { SessionModel } from "../models/session.model";
 
 class UserController {
 
@@ -24,7 +23,7 @@ class UserController {
         reply.headers({
             authorization: tokens.accessToken
         })
-        .setCookie(SESSION_COOKIE_NAME, tokens.refreshToken, SESSION_COOKIE_OPTIONS)
+        .setCookie(SESSION_COOKIE_NAME, tokens.refreshToken, SESSION_COOKIE_OPTIONS as any)
         .status(201)
 
         return tokens
@@ -44,7 +43,7 @@ class UserController {
         reply.headers({
             authorization: tokens.accessToken
         })
-        .setCookie(SESSION_COOKIE_NAME, tokens.refreshToken, SESSION_COOKIE_OPTIONS)
+        .setCookie(SESSION_COOKIE_NAME, tokens.refreshToken, SESSION_COOKIE_OPTIONS as any)
         .status(201)
         
         return tokens
@@ -54,9 +53,9 @@ class UserController {
      * Проверяет токены авторизации на валидность и добавляет в запрос поле user_id содержащее id пользователя из токенов авторизации 
      * В случае невалидности токенов выбрасывает ошибку
      */
-    async auth({ headers, cookies, ...req }: FastifyRequest<GetMeBySession>, reply: FastifyReply) {
-        const { refresh_token } = cookies
-        const { authorization, fingerprint } = headers
+    async auth(req: FastifyRequest<GetMeBySession>, reply: FastifyReply) {
+        const { refresh_token } = req.cookies
+        const { authorization, fingerprint } = req.headers
 
         const tokens = await TokensService.checkSession({accessToken: authorization, refreshToken: refresh_token}, {fingerprint})
         const verifedTokens = await TokensService.verifyTokens(tokens)
@@ -66,7 +65,7 @@ class UserController {
         reply.headers({
             authorization: tokens.accessToken
         })
-        .setCookie(SESSION_COOKIE_NAME, tokens.refreshToken, SESSION_COOKIE_OPTIONS)
+        .setCookie(SESSION_COOKIE_NAME, tokens.refreshToken, SESSION_COOKIE_OPTIONS as any)
 
         req.user_id = verifedTokens.user_id
     }

@@ -7,12 +7,12 @@ const router = VueRouter.createRouter({
     history: VueRouter.createWebHistory(),
     routes: [
         {
-            path: "/me-posts",
-            component: () => import("./components/MePosts.vue"),
-        },
-        {
             path: "/",
             component: () => import("./components/Reg.vue"),
+        },
+        {
+            path: "/posts",
+            component: () => import("./components/Posts.vue"),
         },
         {
             path: "/login",
@@ -24,10 +24,11 @@ const router = VueRouter.createRouter({
 const app = createApp(App)
 
 router.beforeEach((to, from, next) => {
-    if(to.path === "/me-posts" && !cookie.get("refresh_token")) next({path: "/"})
-    if(to.path === "/" && cookie.get("refresh_token")) next({path: "/me-posts"})
+    if(to.path === "/posts" && !cookie.get("refresh_token")) next({path: "/"})
+    if(to.path === "/" && cookie.get("refresh_token")) next({path: "/posts"})
     next()
 })
+
 app.use(router)
 
 app.mount('#app')

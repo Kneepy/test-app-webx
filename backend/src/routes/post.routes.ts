@@ -11,6 +11,7 @@ export const privatePostRoutes = (fastify: FastifyInstance, _, done: Function) =
 
 export const publicPostRoutes = (fastify: FastifyInstance, _, done: Function) => {
     fastify.get("/post", PostController.getOne)
+    fastify.get("/posts", PostController.getAllPosts)
 
     done()
 }

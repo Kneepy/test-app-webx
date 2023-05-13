@@ -17,10 +17,15 @@ class PostController {
 
         return await PostModel.find({ user: new mongoose.Types.ObjectId(user_id)}).limit(take).skip(skip)
     }
-    async create({ body, user_id }: FastifyRequest<SavePostDTO>) {
+    async getAllPosts({ query }: FastifyRequest<GetPostsDTO>) {
+        const { take = DEFAULT_TAKE_POSTS, skip = 0 } = query
+
+        return await PostModel.find().limit(take).skip(skip).populate("user")
+    }
+    async create({ body, ...req }: FastifyRequest<SavePostDTO>) {
         const { title, media } = body
 
-        return await PostModel.create({title, media, user: user_id})
+        return (await PostModel.create({title, media, user: req.user_id, createdAt: Date.now()})).populate("user")
     }
     async update({ body, query, user_id }: FastifyRequest<SavePostDTO>) {
         const { title, media } = body

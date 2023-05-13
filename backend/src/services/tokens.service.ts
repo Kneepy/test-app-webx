@@ -31,7 +31,7 @@ class TokensService {
 
         if(session && session.user && session.user._id.toString() === verifyAccessToken.user_id && Number(session.createdAt) + SESSION_EXPIRESIN > Date.now() && session.user._id.toString() === verifyAccessToken.user_id) {
             return {
-                user_id: verifyAccessToken.user_id,
+                user_id: verifyAccessToken.user_id.toString(),
             }
         }
 

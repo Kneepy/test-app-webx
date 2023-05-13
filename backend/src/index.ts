@@ -10,8 +10,12 @@ const fastify = Fastify({
     logger: false
 })
 
-fastify.register(FastifyCookie, {parseOptions: {}, secret: "test"})
-fastify.register(cors)
+fastify.register(FastifyCookie)
+fastify.register(cors, {
+    origin: true,
+    credentials: true,
+    exposedHeaders: ["set-cookie"],
+})
 
 fastify.register((fastify: FastifyInstance, _, done: Function) => {
     /**
@@ -30,6 +34,7 @@ fastify.register((fastify: FastifyInstance, _, done: Function) => {
      * Т.е те для которых нужна авторизация
      */
     fastify.register((fastify: FastifyInstance, _, done: Function) => {
+        fastify.decorateRequest("user_id", null)
         fastify.addHook("onRequest", UserContoller.auth)
 
         fastify.register(privateUserRoutes)
